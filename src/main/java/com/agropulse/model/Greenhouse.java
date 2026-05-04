@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 /** Invernadero — entidad principal del sistema AgroPulse. Usada por GreenhouseFacade. */
 @Entity
 @Table(name = "greenhouses")
-public class Greenhouse {
+public class Greenhouse implements Cloneable {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column(nullable = false) private String name;
@@ -36,6 +36,15 @@ public class Greenhouse {
     public void setActive(boolean v)               { this.active = v; }
     public LocalDateTime getCreatedAt()            { return createdAt; }
     public void setCreatedAt(LocalDateTime v)      { this.createdAt = v; }
+
+    @Override
+    public Greenhouse clone() {
+        try {
+            return (Greenhouse) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException("Error al clonar invernadero", e);
+        }
+    }
 
     @Override public String toString() {
         return String.format("Greenhouse{id=%d, name='%s', location='%s'}", id, name, location);
