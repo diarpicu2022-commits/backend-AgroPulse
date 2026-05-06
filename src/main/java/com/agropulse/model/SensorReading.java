@@ -19,7 +19,7 @@ public class SensorReading {
     private String source;           // MANUAL, ESP32_WIFI, ESP32_LORA, ESP32_SERIAL
     @Column(name = "greenhouse_id") private int greenhouseId;
 
-    public SensorReading() { this.timestamp = LocalDateTime.now(); this.source = "MANUAL"; }
+    public SensorReading() { this.timestamp = LocalDateTime.now(); this.source = "MANUAL"; this.sensorType = SensorType.TEMPERATURE; }
     public SensorReading(int sensorId, SensorType type, double value, int greenhouseId) {
         this(); this.sensorId = sensorId; this.sensorType = type;
         this.value = value; this.greenhouseId = greenhouseId;

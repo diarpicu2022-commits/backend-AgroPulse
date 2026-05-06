@@ -204,28 +204,59 @@ public class DatabaseConnection {
                 + "active            INTEGER NOT NULL DEFAULT 1)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS alerts ("
-                + "id           " + autoIncrement + ","
-                + "message      TEXT NOT NULL,"
-                + "level        TEXT NOT NULL,"
-                + "sent         INTEGER NOT NULL DEFAULT 0,"
-                + "created_at   TEXT NOT NULL,"
+                + "id            " + autoIncrement + ","
+                + "message       TEXT NOT NULL,"
+                + "level         TEXT NOT NULL DEFAULT 'INFO',"
+                + "type          TEXT,"
+                + "title         TEXT,"
+                + "sent          INTEGER NOT NULL DEFAULT 0,"
+                + "read_at       INTEGER NOT NULL DEFAULT 0,"
+                + "created_at    TEXT NOT NULL,"
                 + "greenhouse_id INTEGER DEFAULT 1)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS actuators ("
-                + "id           " + autoIncrement + ","
-                + "name         TEXT NOT NULL,"
-                + "type         TEXT NOT NULL,"
-                + "enabled      INTEGER NOT NULL DEFAULT 0,"
-                + "auto_mode    INTEGER NOT NULL DEFAULT 1,"
+                + "id            " + autoIncrement + ","
+                + "name          TEXT NOT NULL,"
+                + "type          TEXT,"
+                + "status        TEXT DEFAULT 'OFF',"
+                + "active        INTEGER NOT NULL DEFAULT 1,"
                 + "greenhouse_id INTEGER NOT NULL DEFAULT 1,"
-                + "last_toggled TEXT)");
+                + "created_at    TEXT)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS system_logs ("
-                + "id           " + autoIncrement + ","
-                + "action       TEXT NOT NULL,"
-                + "details      TEXT,"
-                + "performed_by TEXT,"
-                + "timestamp    TEXT NOT NULL)");
+                + "id         " + autoIncrement + ","
+                + "action     TEXT NOT NULL,"
+                + "user_name  TEXT,"
+                + "details    TEXT,"
+                + "level      TEXT DEFAULT 'INFO',"
+                + "timestamp  TEXT NOT NULL)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS rules ("
+                + "id              " + autoIncrement + ","
+                + "name            TEXT NOT NULL,"
+                + "sensor          TEXT,"
+                + "condition       TEXT,"
+                + "condition_value REAL DEFAULT 0.0,"
+                + "action          TEXT,"
+                + "actuator_id     INTEGER DEFAULT 0,"
+                + "active          INTEGER NOT NULL DEFAULT 1,"
+                + "created_at      TEXT)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS tickets ("
+                + "id          " + autoIncrement + ","
+                + "title       TEXT NOT NULL,"
+                + "description TEXT,"
+                + "status      TEXT DEFAULT 'OPEN',"
+                + "priority    TEXT DEFAULT 'MEDIUM',"
+                + "user_id     INTEGER DEFAULT 0,"
+                + "user_name   TEXT,"
+                + "created_at  TEXT,"
+                + "updated_at  TEXT)");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS user_greenhouse ("
+                + "user_id       INTEGER NOT NULL,"
+                + "greenhouse_id INTEGER NOT NULL,"
+                + "PRIMARY KEY (user_id, greenhouse_id))");
 
             // Datos por defecto solo en SQLite (desarrollo)
             if (!isPostgres) {

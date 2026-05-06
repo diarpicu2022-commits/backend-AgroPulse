@@ -16,7 +16,12 @@ public class Alert {
     @Column(name = "created_at") private LocalDateTime createdAt;
     @Column(name = "greenhouse_id") private int greenhouseId;
 
-    public Alert() { this.createdAt = LocalDateTime.now(); this.sent = false; }
+    // New fields
+    private String type;
+    private String title;
+    @Column(name = "read_at") private boolean read;
+
+    public Alert() { this.createdAt = LocalDateTime.now(); this.sent = false; this.read = false; }
     public Alert(String message, AlertLevel level, int greenhouseId) {
         this(); this.message = message; this.level = level; this.greenhouseId = greenhouseId;
     }
@@ -33,6 +38,12 @@ public class Alert {
     public void setCreatedAt(LocalDateTime v)   { this.createdAt = v; }
     public int getGreenhouseId()                { return greenhouseId; }
     public void setGreenhouseId(int v)          { this.greenhouseId = v; }
+    public String getType()                     { return type; }
+    public void setType(String v)               { this.type = v; }
+    public String getTitle()                    { return title; }
+    public void setTitle(String v)              { this.title = v; }
+    public boolean isRead()                     { return read; }
+    public void setRead(boolean v)              { this.read = v; }
 
     @Override public String toString() {
         return String.format("Alert{[%s] %s}", level, message);

@@ -38,7 +38,7 @@ public class Sensor {
     private int greenhouseId;
 
     // ── Constructores ─────────────────────────────────────────────────
-    public Sensor() { this.active = true; }
+    public Sensor() { this.active = true; this.type = SensorType.TEMPERATURE; }
 
     public Sensor(String name, SensorType type, String location, int greenhouseId) {
         this();
@@ -54,7 +54,8 @@ public class Sensor {
      */
     public String getFormattedValue() {
         return switch (type) {
-            case TEMPERATURE   -> String.format("%.1f °C", lastValue);
+            case TEMPERATURE, TEMPERATURE_INTERNAL, TEMPERATURE_EXTERNAL
+                               -> String.format("%.1f °C", lastValue);
             case HUMIDITY      -> String.format("%.1f %%", lastValue);
             case SOIL_MOISTURE -> String.format("%.1f %%", lastValue);
             case LIGHT         -> String.format("%.0f lux", lastValue);

@@ -1,31 +1,133 @@
 package com.agropulse.api;
 
-import com.agropulse.pattern.structural.facade.GreenhouseFacade;
-import com.agropulse.pattern.structural.facade.GreenhouseReport;
+import com.agropulse.dao.GreenhouseRepository;
+import com.agropulse.model.Greenhouse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 /**
- * Controlador REST del invernadero.
- * Usa el Patron Facade para exponer operaciones complejas en un solo endpoint.
+ * Controlador REST para invernaderos.
+ * Reemplaza el antiguo GreenhouseController que mapeaba a /greenhouse (incorrecto).
+ * Ahora mapea a /greenhouses (plural) con CRUD completo.
  */
 @RestController
-@RequestMapping("/greenhouse")
+@RequestMapping("/greenhouses")
 @CrossOrigin(origins = "*")
 public class GreenhouseController {
 
-    private final GreenhouseFacade facade;
-    public GreenhouseController(GreenhouseFacade facade) { this.facade = facade; }
+    @Autowired
+    private GreenhouseRepository greenhouseRepository;
 
-    @GetMapping("/{id}/report")
-    public ResponseEntity<GreenhouseReport> getFullReport(@PathVariable int id) {
-        return ResponseEntity.ok(facade.getGreenhouseFullReport(id));
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    // ── GET /greenhouses ─────────────────────────────────────────────────
+    @GetMapping
+    public ResponseEntity<?> getAll() {
+        List<Greenhouse> list = greenhouseRepository.findAll();
+        return ResponseEntity.ok(Map.of("greenhouses", list));
     }
 
-    @PostMapping("/{id}/irrigate")
-    public ResponseEntity<Boolean> triggerIrrigation(
-            @PathVariable int id,
-            @RequestParam(defaultValue = "50.0") double threshold) {
-        return ResponseEntity.ok(facade.triggerIrrigationIfNeeded(id, threshold));
+    // ── POST /greenhouses ────────────────────────────────────────────────
+    @PostMapping
+    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
+        Greenhouse g = new Greenhouse();
+        if (body.containsKey("name"))        g.setName((String) body.get("name"));
+        if (body.containsKey("location"))    g.setLocation((String) body.get("location"));
+        if (body.containsKey("description")) g.setDescription((String) body.get("description"));
+        if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
+        if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
+        greenhouseRepository.save(g);
+        return ResponseEntity.ok(g);
+    }
+
+    // ── GET /greenhouses/{id} ────────────────────────────────────────────
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable int id) {
+        Optional<Greenhouse> opt = greenhouseRepository.findById(id);
+        return opt.map(ResponseEntity::ok)
+                  .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ── PUT /greenhouses/{id} ────────────────────────────────────────────
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body) {
+        Optional<Greenhouse> opt = greenhouseRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        Greenhouse g = opt.get();
+        if (body.containsKey("name"))        g.setName((String) body.get("name"));
+        if (body.containsKey("location"))    g.setLocation((String) body.get("location"));
+        if (body.containsKey("description")) g.setDescription((String) body.get("description"));
+        if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
+        if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
+        greenhouseRepository.save(g);
+        return ResponseEntity.ok(g);
+    }
+
+    // ── DELETE /greenhouses/{id} ─────────────────────────────────────────
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable int id) {
+        if (!greenhouseRepository.existsById(id)) return ResponseEntity.notFound().build();
+        greenhouseRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of("deleted", true));
+    }
+
+    // ── GET /greenhouses/{id}/users ──────────────────────────────────────
+    @GetMapping("/{id}/users")
+    public ResponseEntity<?> getUsersForGreenhouse(@PathVariable int id) {
+        try {
+            List<Map<String, Object>> users = jdbcTemplate.queryForList(
+                "SELECT u.id, u.username, u.full_name, u.email, u.phone, u.avatar, u.role, u.active, u.created_at " +
+                "FROM users u JOIN user_greenhouse ug ON u.id = ug.user_id WHERE ug.greenhouse_id = ?", id);
+            return ResponseEntity.ok(Map.of("users", users));
+        } catch (Exception e) {
+            return ResponseEntity.ok(Map.of("users", List.of()));
+        }
+    }
+
+    // ── POST /greenhouses/{id}/users ─────────────────────────────────────
+    @PostMapping("/{id}/users")
+    public ResponseEntity<?> assignUser(@PathVariable int id, @RequestBody Map<String, Object> body) {
+        int userId = toInt(body.get("userId"));
+        try {
+            jdbcTemplate.update(
+                "INSERT OR IGNORE INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?)",
+                userId, id);
+        } catch (Exception e) {
+            // Some databases don't support INSERT OR IGNORE; try plain insert
+            try {
+                jdbcTemplate.update(
+                    "INSERT INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?)",
+                    userId, id);
+            } catch (Exception ignored) {}
+        }
+        return ResponseEntity.ok(Map.of("assigned", true));
+    }
+
+    // ── DELETE /greenhouses/{id}/users/{userId} ──────────────────────────
+    @DeleteMapping("/{id}/users/{userId}")
+    public ResponseEntity<?> removeUser(@PathVariable int id, @PathVariable int userId) {
+        try {
+            jdbcTemplate.update(
+                "DELETE FROM user_greenhouse WHERE greenhouse_id = ? AND user_id = ?",
+                id, userId);
+        } catch (Exception ignored) {}
+        return ResponseEntity.ok(Map.of("removed", true));
+    }
+
+    // ── Helper ───────────────────────────────────────────────────────────
+    private int toInt(Object value) {
+        if (value == null) return 0;
+        if (value instanceof Integer) return (Integer) value;
+        if (value instanceof Long) return ((Long) value).intValue();
+        if (value instanceof Double) return ((Double) value).intValue();
+        try { return Integer.parseInt(value.toString()); } catch (NumberFormatException e) { return 0; }
     }
 }
