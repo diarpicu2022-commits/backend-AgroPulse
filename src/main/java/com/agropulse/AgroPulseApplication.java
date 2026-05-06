@@ -2,6 +2,7 @@ package com.agropulse;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 
 /**
  * ╔══════════════════════════════════════════════════════════════════════╗
@@ -26,7 +27,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * ║  Principios SOLID: SRP, OCP, LSP, ISP, DIP                        ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
 public class AgroPulseApplication {
 
     public static void main(String[] args) {
