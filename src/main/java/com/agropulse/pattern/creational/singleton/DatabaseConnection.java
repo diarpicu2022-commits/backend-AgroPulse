@@ -122,7 +122,11 @@ public class DatabaseConnection {
     private boolean connectToOnline() {
         try {
             Class.forName("org.postgresql.Driver");
-            onlineConnection = DriverManager.getConnection(onlineUrl);
+            // Limit connection attempt to 10 s to avoid blocking the entire startup
+            String url = onlineUrl.contains("connectTimeout") ? onlineUrl
+                       : onlineUrl + (onlineUrl.contains("?") ? "&" : "?")
+                         + "connectTimeout=10&socketTimeout=30";
+            onlineConnection = DriverManager.getConnection(url);
             System.out.println("[DB-Online] PostgreSQL/Supabase conectado.");
             initializeSchema(onlineConnection);
             return true;
@@ -172,13 +176,16 @@ public class DatabaseConnection {
                 + "created_at  TEXT NOT NULL)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS sensors ("
-                + "id           " + autoIncrement + ","
-                + "name         TEXT NOT NULL,"
-                + "type         TEXT NOT NULL,"
-                + "location     TEXT,"
-                + "last_value   REAL DEFAULT 0.0,"
-                + "active       INTEGER NOT NULL DEFAULT 1,"
-                + "greenhouse_id INTEGER NOT NULL DEFAULT 1)");
+                + "id            " + autoIncrement + ","
+                + "name          TEXT NOT NULL,"
+                + "type          TEXT NOT NULL,"
+                + "location      TEXT,"
+                + "last_value    REAL DEFAULT 0.0,"
+                + "active        INTEGER NOT NULL DEFAULT 1,"
+                + "greenhouse_id INTEGER NOT NULL DEFAULT 1,"
+                + "gpio_pin      INTEGER,"
+                + "protocol      TEXT,"
+                + "device_source TEXT)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS sensor_readings ("
                 + "id           " + autoIncrement + ","
@@ -221,7 +228,10 @@ public class DatabaseConnection {
                 + "status        TEXT DEFAULT 'OFF',"
                 + "active        INTEGER NOT NULL DEFAULT 1,"
                 + "greenhouse_id INTEGER NOT NULL DEFAULT 1,"
-                + "created_at    TEXT)");
+                + "created_at    TEXT,"
+                + "gpio_pin      INTEGER,"
+                + "active_low    INTEGER DEFAULT 0,"
+                + "device_source TEXT)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS system_logs ("
                 + "id         " + autoIncrement + ","
