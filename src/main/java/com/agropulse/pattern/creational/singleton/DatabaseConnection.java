@@ -151,8 +151,14 @@ public class DatabaseConnection {
         try (Statement stmt = conn.createStatement()) {
             boolean isPostgres = conn.getMetaData().getDatabaseProductName()
                                      .toLowerCase().contains("postgresql");
-            String autoIncrement = isPostgres ? "SERIAL PRIMARY KEY"
-                                              : "INTEGER PRIMARY KEY AUTOINCREMENT";
+            // Spring JPA (ddl-auto=update) manages the PostgreSQL schema.
+            // Running CREATE TABLE here would create columns with wrong types
+            // (e.g. TEXT instead of TIMESTAMP) and conflict with Hibernate.
+            if (isPostgres) {
+                System.out.println("[DB] Schema PostgreSQL delegado a Hibernate JPA.");
+                return;
+            }
+            String autoIncrement = "INTEGER PRIMARY KEY AUTOINCREMENT";
 
             stmt.execute("CREATE TABLE IF NOT EXISTS users ("
                 + "id         " + autoIncrement + ","
