@@ -38,14 +38,20 @@ public class GreenhouseController {
     // ── POST /greenhouses ────────────────────────────────────────────────
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
-        Greenhouse g = new Greenhouse();
-        if (body.containsKey("name"))        g.setName((String) body.get("name"));
-        if (body.containsKey("location"))    g.setLocation((String) body.get("location"));
-        if (body.containsKey("description")) g.setDescription((String) body.get("description"));
-        if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
-        if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
-        greenhouseRepository.save(g);
-        return ResponseEntity.ok(g);
+        try {
+            Greenhouse g = new Greenhouse();
+            if (body.containsKey("name"))        g.setName((String) body.get("name"));
+            if (body.containsKey("location"))    g.setLocation((String) body.get("location"));
+            if (body.containsKey("description")) g.setDescription((String) body.get("description"));
+            if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
+            if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
+            greenhouseRepository.save(g);
+            return ResponseEntity.ok(g);
+        } catch (Exception e) {
+            String msg = e.getMessage();
+            if (e.getCause() != null) msg += " | " + e.getCause().getMessage();
+            return ResponseEntity.status(500).body(Map.of("error", msg));
+        }
     }
 
     // ── GET /greenhouses/{id} ────────────────────────────────────────────
