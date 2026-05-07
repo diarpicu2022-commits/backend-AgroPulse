@@ -98,16 +98,9 @@ public class GreenhouseController {
         int userId = toInt(body.get("userId"));
         try {
             jdbcTemplate.update(
-                "INSERT OR IGNORE INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?)",
+                "INSERT INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?) ON CONFLICT DO NOTHING",
                 userId, id);
-        } catch (Exception e) {
-            // Some databases don't support INSERT OR IGNORE; try plain insert
-            try {
-                jdbcTemplate.update(
-                    "INSERT INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?)",
-                    userId, id);
-            } catch (Exception ignored) {}
-        }
+        } catch (Exception ignored) {}
         return ResponseEntity.ok(Map.of("assigned", true));
     }
 
