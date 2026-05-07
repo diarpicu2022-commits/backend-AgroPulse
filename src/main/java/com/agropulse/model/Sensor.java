@@ -37,6 +37,15 @@ public class Sensor {
     @Column(name = "greenhouse_id")
     private int greenhouseId;
 
+    @Column(name = "gpio_pin")
+    private Integer gpioPin;
+
+    @Column(name = "protocol")
+    private String protocol;       // DHT22, DHT11, ADC, I2C, DIGITAL
+
+    @Column(name = "device_source")
+    private String deviceSource;   // ID del ESP32 que registró este sensor
+
     // ── Constructores ─────────────────────────────────────────────────
     public Sensor() { this.active = true; this.type = SensorType.TEMPERATURE; }
 
@@ -86,4 +95,10 @@ public class Sensor {
     public void setActive(boolean active)     { this.active = active; }
     public int getGreenhouseId()              { return greenhouseId; }
     public void setGreenhouseId(int id)       { this.greenhouseId = id; }
+    public Integer getGpioPin()               { return gpioPin; }
+    public void setGpioPin(Integer v)         { this.gpioPin = v; }
+    public String getProtocol()               { return protocol; }
+    public void setProtocol(String v)         { this.protocol = v; }
+    public String getDeviceSource()           { return deviceSource; }
+    public void setDeviceSource(String v)     { this.deviceSource = v; }
 }

@@ -19,10 +19,12 @@ public class SensorController {
     @Autowired
     private SensorRepository sensorRepository;
 
-    // ── GET /sensors ─────────────────────────────────────────────────────
+    // ── GET /sensors?greenhouseId=X ──────────────────────────────────────
     @GetMapping
-    public ResponseEntity<?> getAll() {
-        List<Sensor> sensors = sensorRepository.findAll();
+    public ResponseEntity<?> getAll(@RequestParam(required = false) Integer greenhouseId) {
+        List<Sensor> sensors = (greenhouseId != null)
+            ? sensorRepository.findByGreenhouseId(greenhouseId)
+            : sensorRepository.findAll();
         return ResponseEntity.ok(Map.of("sensors", sensors));
     }
 
@@ -35,9 +37,10 @@ public class SensorController {
         if (body.containsKey("greenhouseId")) sensor.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("lastValue"))    sensor.setLastValue(toDouble(body.get("lastValue")));
         if (body.containsKey("active"))       sensor.setActive((Boolean) body.get("active"));
-        if (body.containsKey("type")) {
-            sensor.setType(parseSensorType((String) body.get("type")));
-        }
+        if (body.containsKey("gpioPin"))      sensor.setGpioPin(toInt(body.get("gpioPin")));
+        if (body.containsKey("protocol"))     sensor.setProtocol((String) body.get("protocol"));
+        if (body.containsKey("deviceSource")) sensor.setDeviceSource((String) body.get("deviceSource"));
+        if (body.containsKey("type"))         sensor.setType(parseSensorType((String) body.get("type")));
         sensorRepository.save(sensor);
         return ResponseEntity.ok(sensor);
     }
@@ -61,9 +64,10 @@ public class SensorController {
         if (body.containsKey("greenhouseId")) sensor.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("lastValue"))    sensor.setLastValue(toDouble(body.get("lastValue")));
         if (body.containsKey("active"))       sensor.setActive((Boolean) body.get("active"));
-        if (body.containsKey("type")) {
-            sensor.setType(parseSensorType((String) body.get("type")));
-        }
+        if (body.containsKey("gpioPin"))      sensor.setGpioPin(toInt(body.get("gpioPin")));
+        if (body.containsKey("protocol"))     sensor.setProtocol((String) body.get("protocol"));
+        if (body.containsKey("deviceSource")) sensor.setDeviceSource((String) body.get("deviceSource"));
+        if (body.containsKey("type"))         sensor.setType(parseSensorType((String) body.get("type")));
         sensorRepository.save(sensor);
         return ResponseEntity.ok(sensor);
     }

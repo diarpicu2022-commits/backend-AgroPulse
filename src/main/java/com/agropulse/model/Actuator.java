@@ -14,6 +14,9 @@ public class Actuator {
     @Column(name = "greenhouse_id") private int greenhouseId;
     private boolean active;
     @Column(name = "created_at") private LocalDateTime createdAt;
+    @Column(name = "gpio_pin")    private Integer gpioPin;
+    @Column(name = "active_low")  private boolean activeLow;    // true para relés HW-383
+    @Column(name = "device_source") private String deviceSource; // ID del ESP32
 
     public Actuator() { this.active = true; this.status = "OFF"; this.createdAt = LocalDateTime.now(); }
 
@@ -31,6 +34,13 @@ public class Actuator {
     public void setActive(boolean v)            { this.active = v; }
     public LocalDateTime getCreatedAt()         { return createdAt; }
     public void setCreatedAt(LocalDateTime v)   { this.createdAt = v; }
+
+    public Integer getGpioPin()               { return gpioPin; }
+    public void setGpioPin(Integer v)         { this.gpioPin = v; }
+    public boolean isActiveLow()              { return activeLow; }
+    public void setActiveLow(boolean v)       { this.activeLow = v; }
+    public String getDeviceSource()           { return deviceSource; }
+    public void setDeviceSource(String v)     { this.deviceSource = v; }
 
     @Override public String toString() {
         return String.format("Actuator{id=%d, name='%s', type=%s, status=%s}", id, name, type, status);

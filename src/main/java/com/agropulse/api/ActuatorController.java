@@ -18,10 +18,12 @@ public class ActuatorController {
     @Autowired
     private ActuatorRepository actuatorRepository;
 
-    // ── GET /actuators ────────────────────────────────────────────────────
+    // ── GET /actuators?greenhouseId=X ────────────────────────────────────
     @GetMapping
-    public ResponseEntity<?> getAll() {
-        List<Actuator> actuators = actuatorRepository.findAll();
+    public ResponseEntity<?> getAll(@RequestParam(required = false) Integer greenhouseId) {
+        List<Actuator> actuators = (greenhouseId != null)
+            ? actuatorRepository.findByGreenhouseId(greenhouseId)
+            : actuatorRepository.findAll();
         return ResponseEntity.ok(Map.of("actuators", actuators));
     }
 
@@ -34,6 +36,9 @@ public class ActuatorController {
         if (body.containsKey("status"))       actuator.setStatus((String) body.get("status"));
         if (body.containsKey("greenhouseId")) actuator.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("active"))       actuator.setActive((Boolean) body.get("active"));
+        if (body.containsKey("gpioPin"))      actuator.setGpioPin(toInt(body.get("gpioPin")));
+        if (body.containsKey("activeLow"))    actuator.setActiveLow(toBool(body.get("activeLow")));
+        if (body.containsKey("deviceSource")) actuator.setDeviceSource((String) body.get("deviceSource"));
         actuatorRepository.save(actuator);
         return ResponseEntity.ok(actuator);
     }
@@ -57,6 +62,9 @@ public class ActuatorController {
         if (body.containsKey("status"))       actuator.setStatus((String) body.get("status"));
         if (body.containsKey("greenhouseId")) actuator.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("active"))       actuator.setActive((Boolean) body.get("active"));
+        if (body.containsKey("gpioPin"))      actuator.setGpioPin(toInt(body.get("gpioPin")));
+        if (body.containsKey("activeLow"))    actuator.setActiveLow(toBool(body.get("activeLow")));
+        if (body.containsKey("deviceSource")) actuator.setDeviceSource((String) body.get("deviceSource"));
         actuatorRepository.save(actuator);
         return ResponseEntity.ok(actuator);
     }
@@ -69,12 +77,18 @@ public class ActuatorController {
         return ResponseEntity.ok(Map.of("deleted", true));
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────
     private int toInt(Object value) {
         if (value == null) return 0;
         if (value instanceof Integer) return (Integer) value;
         if (value instanceof Long) return ((Long) value).intValue();
         if (value instanceof Double) return ((Double) value).intValue();
         try { return Integer.parseInt(value.toString()); } catch (NumberFormatException e) { return 0; }
+    }
+
+    private boolean toBool(Object value) {
+        if (value == null) return false;
+        if (value instanceof Boolean) return (Boolean) value;
+        return Boolean.parseBoolean(value.toString());
     }
 }
