@@ -20,16 +20,19 @@ public class ReadingController {
     @Autowired
     private ReadingRepository readingRepository;
 
-    // ── GET /readings?limit=100&sensor=id ────────────────────────────────
+    // ── GET /readings?limit=100&sensor=id&greenhouseId=X ─────────────────
     @GetMapping
     public ResponseEntity<?> getAll(
             @RequestParam(defaultValue = "100") int limit,
-            @RequestParam(required = false) Integer sensor) {
+            @RequestParam(required = false) Integer sensor,
+            @RequestParam(required = false) Integer greenhouseId) {
 
         PageRequest page = PageRequest.of(0, limit, Sort.by("timestamp").descending());
         List<SensorReading> readings;
         if (sensor != null) {
             readings = readingRepository.findBySensorId(sensor, page);
+        } else if (greenhouseId != null) {
+            readings = readingRepository.findByGreenhouseIdOrderByTimestampDesc(greenhouseId, page);
         } else {
             readings = readingRepository.findAllByOrderByTimestampDesc(page);
         }

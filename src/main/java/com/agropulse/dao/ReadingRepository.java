@@ -8,4 +8,5 @@ import java.util.List;
 public interface ReadingRepository extends JpaRepository<SensorReading, Integer> {
     List<SensorReading> findBySensorId(int sensorId, Pageable pageable);
     List<SensorReading> findAllByOrderByTimestampDesc(Pageable pageable);
+    List<SensorReading> findByGreenhouseIdOrderByTimestampDesc(int greenhouseId, Pageable pageable);
 }
