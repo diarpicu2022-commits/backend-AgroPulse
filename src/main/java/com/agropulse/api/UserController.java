@@ -92,18 +92,27 @@ public class UserController {
         return ResponseEntity.ok(Map.of("deleted", true));
     }
 
+    // ── GET /users/{id}/greenhouses ──────────────────────────────────────
+    @GetMapping("/{id}/greenhouses")
+    public ResponseEntity<?> getGreenhouses(@PathVariable int id) {
+        Optional<User> opt = userRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(Map.of("ids", opt.get().getGreenhouseIds()));
+    }
+
     // ── Helper ───────────────────────────────────────────────────────────
     private Map<String, Object> sanitize(User user) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id",        user.getId());
-        map.put("username",  user.getUsername());
-        map.put("fullName",  user.getFullName());
-        map.put("email",     user.getEmail());
-        map.put("phone",     user.getPhone());
-        map.put("avatar",    user.getAvatar());
-        map.put("role",      user.getRole() != null ? user.getRole().name() : null);
-        map.put("active",    user.isActive());
-        map.put("createdAt", user.getCreatedAt());
+        map.put("id",             user.getId());
+        map.put("username",       user.getUsername());
+        map.put("fullName",       user.getFullName());
+        map.put("email",          user.getEmail());
+        map.put("phone",          user.getPhone());
+        map.put("avatar",         user.getAvatar());
+        map.put("role",           user.getRole() != null ? user.getRole().name() : null);
+        map.put("active",         user.isActive());
+        map.put("createdAt",      user.getCreatedAt());
+        map.put("greenhouseIds",  user.getGreenhouseIds());
         return map;
     }
 }

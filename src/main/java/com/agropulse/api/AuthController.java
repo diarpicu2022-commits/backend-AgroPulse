@@ -185,6 +185,31 @@ public class AuthController {
         return ResponseEntity.ok(sanitize(user));
     }
 
+    // ── PUT /auth/users/{id}/greenhouses ─────────────────────────────────
+    @PutMapping("/users/{id}/greenhouses")
+    public ResponseEntity<?> setGreenhouses(@PathVariable int id,
+                                            @RequestBody Map<String, Object> body,
+                                            HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
+        }
+        Optional<User> opt = userRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        User user = opt.get();
+
+        Object idsObj = body.get("ids");
+        if (idsObj instanceof List) {
+            List<Integer> ids = ((List<?>) idsObj).stream()
+                    .map(o -> ((Number) o).intValue())
+                    .collect(Collectors.toList());
+            user.setGreenhouseIds(ids);
+        } else {
+            user.setGreenhouseIds(new java.util.ArrayList<>());
+        }
+        userRepository.save(user);
+        return ResponseEntity.ok(Map.of("ids", user.getGreenhouseIds()));
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     private boolean isAdmin(HttpServletRequest request) {
@@ -195,15 +220,16 @@ public class AuthController {
 
     private Map<String, Object> sanitize(User user) {
         Map<String, Object> map = new HashMap<>();
-        map.put("id",        user.getId());
-        map.put("username",  user.getUsername());
-        map.put("fullName",  user.getFullName());
-        map.put("email",     user.getEmail());
-        map.put("phone",     user.getPhone());
-        map.put("avatar",    user.getAvatar());
-        map.put("role",      user.getRole() != null ? user.getRole().name() : null);
-        map.put("active",    user.isActive());
-        map.put("createdAt", user.getCreatedAt());
+        map.put("id",             user.getId());
+        map.put("username",       user.getUsername());
+        map.put("fullName",       user.getFullName());
+        map.put("email",          user.getEmail());
+        map.put("phone",          user.getPhone());
+        map.put("avatar",         user.getAvatar());
+        map.put("role",           user.getRole() != null ? user.getRole().name() : null);
+        map.put("active",         user.isActive());
+        map.put("createdAt",      user.getCreatedAt());
+        map.put("greenhouseIds",  user.getGreenhouseIds());
         return map;
     }
 }
