@@ -29,18 +29,30 @@ public class SensorController {
     }
 
     // ── POST /sensors ────────────────────────────────────────────────────
+    // Upsert: si llega deviceSource + type + gpioPin y ya existe, actualiza en vez de crear.
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
-        Sensor sensor = new Sensor();
+        String deviceSource = (String) body.get("deviceSource");
+        SensorType type     = body.containsKey("type") ? parseSensorType((String) body.get("type")) : null;
+        Integer gpioPin     = body.containsKey("gpioPin") ? toInt(body.get("gpioPin")) : null;
+
+        Sensor sensor = null;
+        if (deviceSource != null && !deviceSource.isBlank() && type != null && gpioPin != null && gpioPin >= 0) {
+            sensor = sensorRepository
+                .findFirstByDeviceSourceAndTypeAndGpioPin(deviceSource, type, gpioPin)
+                .orElse(null);
+        }
+        if (sensor == null) sensor = new Sensor();
+
         if (body.containsKey("name"))         sensor.setName((String) body.get("name"));
         if (body.containsKey("location"))     sensor.setLocation((String) body.get("location"));
         if (body.containsKey("greenhouseId")) sensor.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("lastValue"))    sensor.setLastValue(toDouble(body.get("lastValue")));
         if (body.containsKey("active"))       sensor.setActive((Boolean) body.get("active"));
-        if (body.containsKey("gpioPin"))      sensor.setGpioPin(toInt(body.get("gpioPin")));
+        if (gpioPin != null)                  sensor.setGpioPin(gpioPin);
         if (body.containsKey("protocol"))     sensor.setProtocol((String) body.get("protocol"));
-        if (body.containsKey("deviceSource")) sensor.setDeviceSource((String) body.get("deviceSource"));
-        if (body.containsKey("type"))         sensor.setType(parseSensorType((String) body.get("type")));
+        if (deviceSource != null)             sensor.setDeviceSource(deviceSource);
+        if (type != null)                     sensor.setType(type);
         sensorRepository.save(sensor);
         return ResponseEntity.ok(sensor);
     }

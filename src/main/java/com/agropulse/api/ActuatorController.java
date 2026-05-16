@@ -28,17 +28,32 @@ public class ActuatorController {
     }
 
     // ── POST /actuators ───────────────────────────────────────────────────
+    // Upsert: si llega type + gpioPin + greenhouseId y ya existe, actualiza en vez de crear.
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
-        Actuator actuator = new Actuator();
+        String  deviceSource = (String) body.get("deviceSource");
+        String  type         = (String) body.get("type");
+        Integer gpioPin      = body.containsKey("gpioPin") ? toInt(body.get("gpioPin")) : null;
+
+        Actuator actuator = null;
+        if (type != null && gpioPin != null && gpioPin >= 0 && body.containsKey("greenhouseId")) {
+            int ghId = toInt(body.get("greenhouseId"));
+            if (ghId > 0) {
+                actuator = actuatorRepository
+                    .findFirstByTypeAndGpioPinAndGreenhouseId(type, gpioPin, ghId)
+                    .orElse(null);
+            }
+        }
+        if (actuator == null) actuator = new Actuator();
+
         if (body.containsKey("name"))         actuator.setName((String) body.get("name"));
-        if (body.containsKey("type"))         actuator.setType((String) body.get("type"));
+        if (type != null)                     actuator.setType(type);
         if (body.containsKey("status"))       actuator.setStatus((String) body.get("status"));
         if (body.containsKey("greenhouseId")) actuator.setGreenhouseId(toInt(body.get("greenhouseId")));
         if (body.containsKey("active"))       actuator.setActive((Boolean) body.get("active"));
-        if (body.containsKey("gpioPin"))      actuator.setGpioPin(toInt(body.get("gpioPin")));
+        if (gpioPin != null)                  actuator.setGpioPin(gpioPin);
         if (body.containsKey("activeLow"))    actuator.setActiveLow(toBool(body.get("activeLow")));
-        if (body.containsKey("deviceSource")) actuator.setDeviceSource((String) body.get("deviceSource"));
+        if (deviceSource != null)             actuator.setDeviceSource(deviceSource);
         actuatorRepository.save(actuator);
         return ResponseEntity.ok(actuator);
     }
