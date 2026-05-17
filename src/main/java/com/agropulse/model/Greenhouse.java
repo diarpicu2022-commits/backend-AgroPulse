@@ -16,6 +16,15 @@ public class Greenhouse implements Cloneable {
     private boolean active;
     @Column(name = "created_at") private LocalDateTime createdAt;
 
+    @Column(nullable = true)
+    private Double latitude;
+
+    @Column(nullable = true)
+    private Double longitude;
+
+    @Column(name = "photo_url", nullable = true, length = 500)
+    private String photoUrl;
+
     public Greenhouse() { this.active = true; this.createdAt = LocalDateTime.now(); }
     public Greenhouse(String name, String location, String description, int ownerId) {
         this(); this.name = name; this.location = location;
@@ -36,6 +45,12 @@ public class Greenhouse implements Cloneable {
     public void setActive(boolean v)               { this.active = v; }
     public LocalDateTime getCreatedAt()            { return createdAt; }
     public void setCreatedAt(LocalDateTime v)      { this.createdAt = v; }
+    public Double getLatitude()                    { return latitude; }
+    public void setLatitude(Double v)              { this.latitude = v; }
+    public Double getLongitude()                   { return longitude; }
+    public void setLongitude(Double v)             { this.longitude = v; }
+    public String getPhotoUrl()                    { return photoUrl; }
+    public void setPhotoUrl(String v)              { this.photoUrl = v; }
 
     @Override
     public Greenhouse clone() {

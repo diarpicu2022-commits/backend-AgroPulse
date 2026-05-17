@@ -45,6 +45,9 @@ public class GreenhouseController {
             if (body.containsKey("description")) g.setDescription((String) body.get("description"));
             if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
             if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
+            if (body.containsKey("latitude"))    g.setLatitude(toDouble(body.get("latitude")));
+            if (body.containsKey("longitude"))   g.setLongitude(toDouble(body.get("longitude")));
+            if (body.containsKey("photoUrl"))    g.setPhotoUrl((String) body.get("photoUrl"));
             greenhouseRepository.save(g);
             return ResponseEntity.ok(g);
         } catch (Exception e) {
@@ -73,6 +76,9 @@ public class GreenhouseController {
         if (body.containsKey("description")) g.setDescription((String) body.get("description"));
         if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
         if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
+        if (body.containsKey("latitude"))    g.setLatitude(toDouble(body.get("latitude")));
+        if (body.containsKey("longitude"))   g.setLongitude(toDouble(body.get("longitude")));
+        if (body.containsKey("photoUrl"))    g.setPhotoUrl((String) body.get("photoUrl"));
         greenhouseRepository.save(g);
         return ResponseEntity.ok(g);
     }
@@ -128,5 +134,14 @@ public class GreenhouseController {
         if (value instanceof Long) return ((Long) value).intValue();
         if (value instanceof Double) return ((Double) value).intValue();
         try { return Integer.parseInt(value.toString()); } catch (NumberFormatException e) { return 0; }
+    }
+
+    private Double toDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Double) return (Double) value;
+        if (value instanceof Float) return ((Float) value).doubleValue();
+        if (value instanceof Integer) return ((Integer) value).doubleValue();
+        if (value instanceof Long) return ((Long) value).doubleValue();
+        try { return Double.parseDouble(value.toString()); } catch (NumberFormatException e) { return null; }
     }
 }
