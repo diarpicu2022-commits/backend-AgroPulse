@@ -110,7 +110,10 @@ public class GreenhouseController {
     }
 
     // ── POST /greenhouses/{id}/users ─────────────────────────────────────
-    @Transactional
+    // NO @Transactional: jdbcTemplate (optional junction table) and JPA must run
+    // in separate transactions. A shared @Transactional causes PostgreSQL to mark
+    // the whole transaction as aborted when the jdbcTemplate INSERT fails, which
+    // then breaks the subsequent JPA findById even though the exception was caught.
     @PostMapping("/{id}/users")
     public ResponseEntity<?> assignUser(@PathVariable int id, @RequestBody Map<String, Object> body) {
         int userId = toInt(body.get("userId"));
@@ -118,8 +121,10 @@ public class GreenhouseController {
             jdbcTemplate.update(
                 "INSERT INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?) ON CONFLICT DO NOTHING",
                 userId, id);
-        } catch (Exception ignored) {}
-        // Sync User.greenhouse_access so login response includes this greenhouse
+        } catch (Exception ignored) {
+            // user_greenhouse junction table may not exist in all environments — non-fatal
+        }
+        // Sync User.greenhouse_access (JPA runs in its own transaction)
         userRepository.findById(userId).ifPresent(user -> {
             java.util.List<Integer> ids = user.getGreenhouseIds();
             if (!ids.contains(id)) {
@@ -132,15 +137,17 @@ public class GreenhouseController {
     }
 
     // ── DELETE /greenhouses/{id}/users/{userId} ──────────────────────────
-    @Transactional
+    // NO @Transactional: same reason as assignUser above.
     @DeleteMapping("/{id}/users/{userId}")
     public ResponseEntity<?> removeUser(@PathVariable int id, @PathVariable int userId) {
         try {
             jdbcTemplate.update(
                 "DELETE FROM user_greenhouse WHERE greenhouse_id = ? AND user_id = ?",
                 id, userId);
-        } catch (Exception ignored) {}
-        // Sync User.greenhouse_access
+        } catch (Exception ignored) {
+            // user_greenhouse junction table may not exist in all environments — non-fatal
+        }
+        // Sync User.greenhouse_access (JPA runs in its own transaction)
         userRepository.findById(userId).ifPresent(user -> {
             java.util.List<Integer> ids = user.getGreenhouseIds();
             if (ids.remove(Integer.valueOf(id))) {
