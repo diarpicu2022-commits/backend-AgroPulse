@@ -1,10 +1,12 @@
 package com.agropulse.api;
 
 import com.agropulse.dao.GreenhouseRepository;
+import com.agropulse.dao.UserRepository;
 import com.agropulse.model.Greenhouse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -27,6 +29,9 @@ public class GreenhouseController {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private UserRepository userRepository;
 
     // ── GET /greenhouses ─────────────────────────────────────────────────
     @GetMapping
@@ -105,6 +110,7 @@ public class GreenhouseController {
     }
 
     // ── POST /greenhouses/{id}/users ─────────────────────────────────────
+    @Transactional
     @PostMapping("/{id}/users")
     public ResponseEntity<?> assignUser(@PathVariable int id, @RequestBody Map<String, Object> body) {
         int userId = toInt(body.get("userId"));
@@ -113,10 +119,20 @@ public class GreenhouseController {
                 "INSERT INTO user_greenhouse (user_id, greenhouse_id) VALUES (?, ?) ON CONFLICT DO NOTHING",
                 userId, id);
         } catch (Exception ignored) {}
+        // Sync User.greenhouse_access so login response includes this greenhouse
+        userRepository.findById(userId).ifPresent(user -> {
+            java.util.List<Integer> ids = user.getGreenhouseIds();
+            if (!ids.contains(id)) {
+                ids.add(id);
+                user.setGreenhouseIds(ids);
+                userRepository.save(user);
+            }
+        });
         return ResponseEntity.ok(Map.of("assigned", true));
     }
 
     // ── DELETE /greenhouses/{id}/users/{userId} ──────────────────────────
+    @Transactional
     @DeleteMapping("/{id}/users/{userId}")
     public ResponseEntity<?> removeUser(@PathVariable int id, @PathVariable int userId) {
         try {
@@ -124,6 +140,14 @@ public class GreenhouseController {
                 "DELETE FROM user_greenhouse WHERE greenhouse_id = ? AND user_id = ?",
                 id, userId);
         } catch (Exception ignored) {}
+        // Sync User.greenhouse_access
+        userRepository.findById(userId).ifPresent(user -> {
+            java.util.List<Integer> ids = user.getGreenhouseIds();
+            if (ids.remove(Integer.valueOf(id))) {
+                user.setGreenhouseIds(ids);
+                userRepository.save(user);
+            }
+        });
         return ResponseEntity.ok(Map.of("removed", true));
     }
 

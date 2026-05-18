@@ -1,16 +1,20 @@
 package com.agropulse.api;
 
 import com.agropulse.dao.ReadingRepository;
+import com.agropulse.dao.SensorRepository;
+import com.agropulse.model.Sensor;
 import com.agropulse.model.SensorReading;
 import com.agropulse.model.enums.SensorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/readings")
@@ -19,6 +23,9 @@ public class ReadingController {
 
     @Autowired
     private ReadingRepository readingRepository;
+
+    @Autowired
+    private SensorRepository sensorRepository;
 
     // ── GET /readings?limit=100&sensor=id&greenhouseId=X ─────────────────
     @GetMapping
@@ -40,6 +47,7 @@ public class ReadingController {
     }
 
     // ── POST /readings ────────────────────────────────────────────────────
+    @Transactional
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
         SensorReading reading = new SensorReading();
@@ -53,6 +61,30 @@ public class ReadingController {
             } catch (IllegalArgumentException e) {
                 reading.setSensorType(SensorType.TEMPERATURE);
             }
+        }
+        // Auto-register unknown sensor: if sensorId is 0 and we have enough context
+        if (reading.getSensorId() == 0 && reading.getGreenhouseId() > 0 && reading.getSensorType() != null) {
+            String src = reading.getSource();
+            Optional<Sensor> existing;
+            if (src != null && !src.isBlank()) {
+                existing = sensorRepository
+                    .findFirstByGreenhouseIdAndDeviceSourceAndType(
+                        reading.getGreenhouseId(), src, reading.getSensorType());
+            } else {
+                existing = sensorRepository
+                    .findFirstByGreenhouseIdAndType(reading.getGreenhouseId(), reading.getSensorType());
+            }
+
+            Sensor sensor = existing.orElseGet(() -> {
+                Sensor s = new Sensor();
+                s.setName(reading.getSensorType().name() + " (auto)");
+                s.setType(reading.getSensorType());
+                s.setGreenhouseId(reading.getGreenhouseId());
+                if (src != null && !src.isBlank()) s.setDeviceSource(src);
+                s.setActive(true);
+                return sensorRepository.save(s);
+            });
+            reading.setSensorId(sensor.getId());
         }
         readingRepository.save(reading);
         return ResponseEntity.ok(reading);

@@ -13,7 +13,10 @@ import jakarta.persistence.*;
  * getFormattedValue() para mostrar la unidad correcta.
  */
 @Entity
-@Table(name = "sensors")
+@Table(name = "sensors",
+       uniqueConstraints = @UniqueConstraint(
+           name = "uq_sensor_greenhouse_source_type",
+           columnNames = {"greenhouse_id", "device_source", "type"}))
 public class Sensor {
 
     @Id
