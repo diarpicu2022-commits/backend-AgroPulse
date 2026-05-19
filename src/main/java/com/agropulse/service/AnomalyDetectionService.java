@@ -3,6 +3,8 @@ package com.agropulse.service;
 import com.agropulse.dao.*;
 import com.agropulse.model.*;
 import com.agropulse.model.enums.AlertLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +16,8 @@ import java.util.Optional;
 
 @Service
 public class AnomalyDetectionService {
+
+    private static final Logger log = LoggerFactory.getLogger(AnomalyDetectionService.class);
 
     @Autowired private SensorThresholdRepository thresholdRepository;
     @Autowired private SensorRepository          sensorRepository;
@@ -29,7 +33,7 @@ public class AnomalyDetectionService {
             try {
                 processSensor(threshold);
             } catch (Exception e) {
-                System.err.println("[AnomalyDetection] Error processing sensor "
+                log.error("[AnomalyDetection] Error processing sensor "
                         + threshold.getSensorId() + ": " + e.getMessage());
             }
         }
@@ -162,8 +166,8 @@ public class AnomalyDetectionService {
                 anomaly.setNotified(true);
                 anomalyRepository.save(anomaly);
             } catch (Exception e) {
-                System.err.println("[AnomalyDetection] Notification failed for anomaly "
-                        + anomaly.getId() + ": " + e.getMessage());
+                log.error("[AnomalyDetection] Notification failed for anomaly {}: {}",
+                        anomaly.getId(), e.getMessage());
             }
         }
     }

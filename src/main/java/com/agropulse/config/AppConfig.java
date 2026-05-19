@@ -24,7 +24,7 @@ public class AppConfig {
         config.setAllowedOriginPatterns(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Content-Type", "Authorization", "X-Admin-Email"));
+        config.setExposedHeaders(List.of("Content-Type", "Authorization", "X-Admin-Email", "X-User-Id"));
         // No credentials — usamos headers (X-Admin-Email), no cookies
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
