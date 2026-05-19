@@ -48,6 +48,7 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\bridge\ISensorProtocol.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\decorator\ISensorComponent.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\CropDao.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\service\OwnershipService.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\SensorController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\adapter\OpenWeatherMapAPI.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\linkedlist\SensorLinkedList.java

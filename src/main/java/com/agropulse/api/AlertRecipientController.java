@@ -2,6 +2,8 @@ package com.agropulse.api;
 
 import com.agropulse.dao.AlertRecipientRepository;
 import com.agropulse.model.AlertRecipient;
+import com.agropulse.service.OwnershipService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,9 @@ public class AlertRecipientController {
     @Autowired
     private AlertRecipientRepository recipientRepository;
 
+    @Autowired
+    private OwnershipService ownershipService;
+
     // GET /greenhouses/{id}/alert-recipients
     @GetMapping("/greenhouses/{id}/alert-recipients")
     public ResponseEntity<?> list(@PathVariable int id) {
@@ -27,7 +32,10 @@ public class AlertRecipientController {
     // POST /greenhouses/{id}/alert-recipients
     @PostMapping("/greenhouses/{id}/alert-recipients")
     public ResponseEntity<?> create(@PathVariable int id,
-                                    @RequestBody Map<String, Object> body) {
+                                    @RequestBody Map<String, Object> body,
+                                    HttpServletRequest request) {
+        if (!ownershipService.canModifyGreenhouse(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para agregar destinatarios a este invernadero"));
         AlertRecipient r = new AlertRecipient();
         r.setGreenhouseId(id);
         if (body.containsKey("name"))             r.setName((String) body.get("name"));
@@ -42,7 +50,10 @@ public class AlertRecipientController {
     // DELETE /greenhouses/{id}/alert-recipients/{recipientId}
     @DeleteMapping("/greenhouses/{id}/alert-recipients/{recipientId}")
     public ResponseEntity<?> remove(@PathVariable int id,
-                                    @PathVariable int recipientId) {
+                                    @PathVariable int recipientId,
+                                    HttpServletRequest request) {
+        if (!ownershipService.canModifyGreenhouse(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar destinatarios de este invernadero"));
         Optional<AlertRecipient> opt = recipientRepository.findById(recipientId);
         if (opt.isEmpty() || opt.get().getGreenhouseId() != id)
             return ResponseEntity.notFound().build();

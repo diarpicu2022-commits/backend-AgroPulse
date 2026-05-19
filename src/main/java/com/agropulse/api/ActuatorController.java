@@ -2,6 +2,8 @@ package com.agropulse.api;
 
 import com.agropulse.dao.ActuatorRepository;
 import com.agropulse.model.Actuator;
+import com.agropulse.service.OwnershipService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,9 @@ public class ActuatorController {
 
     @Autowired
     private ActuatorRepository actuatorRepository;
+
+    @Autowired
+    private OwnershipService ownershipService;
 
     // ── GET /actuators?greenhouseId=X ────────────────────────────────────
     @GetMapping
@@ -68,7 +73,10 @@ public class ActuatorController {
 
     // ── PUT /actuators/{id} ───────────────────────────────────────────────
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body,
+                                    HttpServletRequest request) {
+        if (!ownershipService.canModifyActuator(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para modificar este actuador"));
         Optional<Actuator> opt = actuatorRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         Actuator actuator = opt.get();
@@ -86,7 +94,9 @@ public class ActuatorController {
 
     // ── DELETE /actuators/{id} ────────────────────────────────────────────
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable int id) {
+    public ResponseEntity<?> delete(@PathVariable int id, HttpServletRequest request) {
+        if (!ownershipService.canModifyActuator(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar este actuador"));
         if (!actuatorRepository.existsById(id)) return ResponseEntity.notFound().build();
         actuatorRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("deleted", true));

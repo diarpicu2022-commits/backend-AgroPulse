@@ -3,6 +3,8 @@ package com.agropulse.api;
 import com.agropulse.dao.GreenhouseRepository;
 import com.agropulse.dao.UserRepository;
 import com.agropulse.model.Greenhouse;
+import com.agropulse.service.OwnershipService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -32,6 +34,9 @@ public class GreenhouseController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OwnershipService ownershipService;
 
     // ── GET /greenhouses ─────────────────────────────────────────────────
     @GetMapping
@@ -72,7 +77,10 @@ public class GreenhouseController {
 
     // ── PUT /greenhouses/{id} ────────────────────────────────────────────
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body,
+                                    HttpServletRequest request) {
+        if (!ownershipService.canModifyGreenhouse(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para modificar este invernadero"));
         Optional<Greenhouse> opt = greenhouseRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         Greenhouse g = opt.get();
@@ -90,7 +98,9 @@ public class GreenhouseController {
 
     // ── DELETE /greenhouses/{id} ─────────────────────────────────────────
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable int id) {
+    public ResponseEntity<?> delete(@PathVariable int id, HttpServletRequest request) {
+        if (!ownershipService.canModifyGreenhouse(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar este invernadero"));
         if (!greenhouseRepository.existsById(id)) return ResponseEntity.notFound().build();
         greenhouseRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("deleted", true));

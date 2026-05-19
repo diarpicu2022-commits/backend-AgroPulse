@@ -3,6 +3,8 @@ package com.agropulse.api;
 import com.agropulse.dao.SensorRepository;
 import com.agropulse.model.Sensor;
 import com.agropulse.model.enums.SensorType;
+import com.agropulse.service.OwnershipService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,9 @@ public class SensorController {
 
     @Autowired
     private SensorRepository sensorRepository;
+
+    @Autowired
+    private OwnershipService ownershipService;
 
     // ── GET /sensors?greenhouseId=X ──────────────────────────────────────
     @GetMapping
@@ -67,7 +72,10 @@ public class SensorController {
 
     // ── PUT /sensors/{id} ────────────────────────────────────────────────
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> update(@PathVariable int id, @RequestBody Map<String, Object> body,
+                                    HttpServletRequest request) {
+        if (!ownershipService.canModifySensor(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para modificar este sensor"));
         Optional<Sensor> opt = sensorRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         Sensor sensor = opt.get();
@@ -86,7 +94,9 @@ public class SensorController {
 
     // ── DELETE /sensors/{id} ─────────────────────────────────────────────
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable int id) {
+    public ResponseEntity<?> delete(@PathVariable int id, HttpServletRequest request) {
+        if (!ownershipService.canModifySensor(id, request))
+            return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para eliminar este sensor"));
         if (!sensorRepository.existsById(id)) return ResponseEntity.notFound().build();
         sensorRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("deleted", true));

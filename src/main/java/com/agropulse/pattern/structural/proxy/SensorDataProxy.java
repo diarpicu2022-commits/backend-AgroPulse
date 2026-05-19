@@ -5,6 +5,7 @@ import com.agropulse.model.enums.SensorType;
 import com.agropulse.model.enums.UserRole;
 import org.springframework.stereotype.Component;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * PATRÓN PROXY — Control de acceso, caché y lazy loading para datos de sensores.
@@ -14,15 +15,16 @@ import java.util.*;
 public class SensorDataProxy implements ISensorDataService {
 
     private final RealSensorDataService realService;
-    private final Map<String, SensorReading> readingCache   = new HashMap<>();
-    private final Map<String, Long>           cacheTimestamps = new HashMap<>();
+    private final Map<String, SensorReading> readingCache    = new ConcurrentHashMap<>();
+    private final Map<String, Long>          cacheTimestamps = new ConcurrentHashMap<>();
     private static final long CACHE_TTL_MS = 30_000;
-    private UserRole currentUserRole = UserRole.OPERATOR;
+    // ThreadLocal: cada hilo (request) tiene su propio rol sin interferencia entre requests concurrentes
+    private final ThreadLocal<UserRole> currentUserRole = ThreadLocal.withInitial(() -> UserRole.OPERATOR);
 
     public SensorDataProxy(RealSensorDataService realService) { this.realService = realService; }
 
     private void checkWriteAccess() {
-        if (currentUserRole == UserRole.VIEWER)
+        if (currentUserRole.get() == UserRole.VIEWER)
             throw new SecurityException("[Proxy] Acceso denegado: VIEWER no puede escribir.");
     }
 
@@ -58,5 +60,5 @@ public class SensorDataProxy implements ISensorDataService {
         return realService.getAverageValue(greenhouseId, type, hours);
     }
 
-    public void setCurrentUserRole(UserRole role) { this.currentUserRole = role; }
+    public void setCurrentUserRole(UserRole role) { currentUserRole.set(role); }
 }

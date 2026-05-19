@@ -5,6 +5,7 @@ import com.agropulse.dao.SensorRepository;
 import com.agropulse.model.Sensor;
 import com.agropulse.model.SensorReading;
 import com.agropulse.model.enums.SensorType;
+import com.agropulse.pattern.behavioral.observer.GreenhouseMonitor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,9 @@ public class ReadingController {
 
     @Autowired
     private SensorRepository sensorRepository;
+
+    @Autowired
+    private GreenhouseMonitor greenhouseMonitor;
 
     // ── GET /readings?limit=100&sensor=id&greenhouseId=X ─────────────────
     @GetMapping
@@ -87,6 +91,7 @@ public class ReadingController {
             reading.setSensorId(sensor.getId());
         }
         readingRepository.save(reading);
+        greenhouseMonitor.processSensorReading(reading);
         return ResponseEntity.ok(reading);
     }
 
