@@ -1,10 +1,12 @@
 package com.agropulse.api;
 
+import com.agropulse.api.dto.GreenhouseCreateDto;
 import com.agropulse.dao.GreenhouseRepository;
 import com.agropulse.dao.UserRepository;
 import com.agropulse.model.Greenhouse;
 import com.agropulse.service.OwnershipService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -47,24 +49,18 @@ public class GreenhouseController {
 
     // ── POST /greenhouses ────────────────────────────────────────────────
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Map<String, Object> body) {
-        try {
-            Greenhouse g = new Greenhouse();
-            if (body.containsKey("name"))        g.setName((String) body.get("name"));
-            if (body.containsKey("location"))    g.setLocation((String) body.get("location"));
-            if (body.containsKey("description")) g.setDescription((String) body.get("description"));
-            if (body.containsKey("ownerId"))     g.setOwnerId(toInt(body.get("ownerId")));
-            if (body.containsKey("active"))      g.setActive((Boolean) body.get("active"));
-            if (body.containsKey("latitude"))    g.setLatitude(toDouble(body.get("latitude")));
-            if (body.containsKey("longitude"))   g.setLongitude(toDouble(body.get("longitude")));
-            if (body.containsKey("photoUrl"))    g.setPhotoUrl((String) body.get("photoUrl"));
-            greenhouseRepository.save(g);
-            return ResponseEntity.ok(g);
-        } catch (Exception e) {
-            String msg = e.getMessage();
-            if (e.getCause() != null) msg += " | " + e.getCause().getMessage();
-            return ResponseEntity.status(500).body(Map.of("error", msg));
-        }
+    public ResponseEntity<?> create(@Valid @RequestBody GreenhouseCreateDto body) {
+        Greenhouse g = new Greenhouse();
+        g.setName(body.getName());
+        if (body.getLocation()    != null) g.setLocation(body.getLocation());
+        if (body.getDescription() != null) g.setDescription(body.getDescription());
+        if (body.getOwnerId()     != null) g.setOwnerId(body.getOwnerId());
+        if (body.getActive()      != null) g.setActive(body.getActive());
+        if (body.getLatitude()    != null) g.setLatitude(body.getLatitude());
+        if (body.getLongitude()   != null) g.setLongitude(body.getLongitude());
+        if (body.getPhotoUrl()    != null) g.setPhotoUrl(body.getPhotoUrl());
+        greenhouseRepository.save(g);
+        return ResponseEntity.ok(g);
     }
 
     // ── GET /greenhouses/{id} ────────────────────────────────────────────

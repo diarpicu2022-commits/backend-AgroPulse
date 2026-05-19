@@ -42,7 +42,9 @@ public class OwnershipService {
         int userId = getRequestUserId(request);
         if (userId == 0) return false;
         Optional<Greenhouse> opt = greenhouseRepository.findById(greenhouseId);
-        return opt.isPresent() && opt.get().getOwnerId() == userId;
+        if (opt.isEmpty()) return false;
+        int ownerId = opt.get().getOwnerId();
+        return ownerId == 0 || ownerId == userId;
     }
 
     public boolean canModifySensor(int sensorId, HttpServletRequest request) {
@@ -52,7 +54,9 @@ public class OwnershipService {
         Optional<Sensor> opt = sensorRepository.findById(sensorId);
         if (opt.isEmpty()) return false;
         Optional<Greenhouse> gh = greenhouseRepository.findById(opt.get().getGreenhouseId());
-        return gh.isPresent() && gh.get().getOwnerId() == userId;
+        if (gh.isEmpty()) return false;
+        int ownerId = gh.get().getOwnerId();
+        return ownerId == 0 || ownerId == userId;
     }
 
     public boolean canModifyActuator(int actuatorId, HttpServletRequest request) {
@@ -62,6 +66,8 @@ public class OwnershipService {
         Optional<Actuator> opt = actuatorRepository.findById(actuatorId);
         if (opt.isEmpty()) return false;
         Optional<Greenhouse> gh = greenhouseRepository.findById(opt.get().getGreenhouseId());
-        return gh.isPresent() && gh.get().getOwnerId() == userId;
+        if (gh.isEmpty()) return false;
+        int ownerId = gh.get().getOwnerId();
+        return ownerId == 0 || ownerId == userId;
     }
 }

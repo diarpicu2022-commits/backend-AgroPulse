@@ -1,9 +1,11 @@
 package com.agropulse.api;
 
+import com.agropulse.api.dto.RegisterDto;
 import com.agropulse.dao.UserRepository;
 import com.agropulse.model.User;
 import com.agropulse.model.enums.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -85,27 +87,17 @@ public class AuthController {
 
     // ── POST /auth/register ──────────────────────────────────────────────
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
-        String username = (String) body.get("username");
-        String password = (String) body.get("password");
-        String fullName = (String) body.get("fullName");
-        String email    = (String) body.get("email");
-
-        if (username == null || password == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "username y password son requeridos"));
-        }
-        if (userRepository.existsByUsername(username)) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterDto body) {
+        if (userRepository.existsByUsername(body.getUsername())) {
             return ResponseEntity.status(409).body(Map.of("error", "El usuario ya existe"));
         }
-
         User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setFullName(fullName != null ? fullName : username);
-        user.setEmail(email);
+        user.setUsername(body.getUsername());
+        user.setPassword(passwordEncoder.encode(body.getPassword()));
+        user.setFullName(body.getFullName() != null ? body.getFullName() : body.getUsername());
+        user.setEmail(body.getEmail());
         user.setRole(UserRole.OPERATOR);
         userRepository.save(user);
-
         return ResponseEntity.ok(sanitize(user));
     }
 

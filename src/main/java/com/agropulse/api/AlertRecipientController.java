@@ -1,9 +1,11 @@
 package com.agropulse.api;
 
+import com.agropulse.api.dto.AlertRecipientCreateDto;
 import com.agropulse.dao.AlertRecipientRepository;
 import com.agropulse.model.AlertRecipient;
 import com.agropulse.service.OwnershipService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +34,16 @@ public class AlertRecipientController {
     // POST /greenhouses/{id}/alert-recipients
     @PostMapping("/greenhouses/{id}/alert-recipients")
     public ResponseEntity<?> create(@PathVariable int id,
-                                    @RequestBody Map<String, Object> body,
+                                    @Valid @RequestBody AlertRecipientCreateDto body,
                                     HttpServletRequest request) {
         if (!ownershipService.canModifyGreenhouse(id, request))
             return ResponseEntity.status(403).body(Map.of("error", "No tienes permiso para agregar destinatarios a este invernadero"));
         AlertRecipient r = new AlertRecipient();
         r.setGreenhouseId(id);
-        if (body.containsKey("name"))             r.setName((String) body.get("name"));
-        if (body.containsKey("email"))            r.setEmail((String) body.get("email"));
-        if (body.containsKey("phone"))            r.setPhone((String) body.get("phone"));
-        if (body.containsKey("callmebotApikey"))  r.setCallmebotApikey((String) body.get("callmebotApikey"));
+        r.setName(body.getName());
+        if (body.getEmail()           != null) r.setEmail(body.getEmail());
+        if (body.getPhone()           != null) r.setPhone(body.getPhone());
+        if (body.getCallmebotApikey() != null) r.setCallmebotApikey(body.getCallmebotApikey());
         r.setActive(true);
         recipientRepository.save(r);
         return ResponseEntity.ok(r);
