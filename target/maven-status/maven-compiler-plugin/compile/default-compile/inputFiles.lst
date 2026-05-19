@@ -2,10 +2,12 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\bridge\TemperatureSensorBridge.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\circulardoublylinkedlist\ScheduleNode.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\stack\IStack.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\SensorThresholdRepository.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\LogController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\factory\TemperatureSensorCreator.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\proxy\ISensorDataService.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\ActuatorRepository.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\SensorThreshold.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\linkedlist\SensorNode.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\abstractfactory\ISensorAbstractFactory.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\array\CircularSensorBuffer.java
@@ -20,6 +22,7 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\SensorReading.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\stack\AlertStack.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\behavioral\observer\IGreenhouseObserver.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\service\AnomalyDetectionService.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\UserController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\doublylinkedlist\SensorReadingHistory.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\service\DeviceService.java
@@ -28,6 +31,7 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\queue\IQueue.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\DeviceController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\CropController.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\SensorAnomalyRepository.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\enums\AlertLevel.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\structure\array\SensorArray.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\decorator\MovingAverageDecorator.java
@@ -67,6 +71,7 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\decorator\RawSensor.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\behavioral\state\ICropState.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\factory\SensorCreator.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\SensorThresholdController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\facade\GreenhouseFacade.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\User.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\SensorRepository.java
@@ -77,13 +82,18 @@ C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\m
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\config\AppConfig.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\factory\HumiditySensorCreator.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\facade\IGreenhouseFacade.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\service\NotificationService.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\behavioral\state\FloweringState.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\GlobalExceptionHandler.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\builder\IrrigationSchedule.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\AlertRecipient.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\proxy\SensorDataProxy.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\SensorAnomaly.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\AlertRecipientRepository.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\model\Crop.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\decorator\SensorDecorator.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\dao\SystemLogRepository.java
+C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\api\AlertRecipientController.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\creational\abstractfactory\IndoorSensorFactory.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\service\CropService.java
 C:\Users\Cisna\Documents\Ing Software\Proyecto\AgroPulse\backend AgroPulse\src\main\java\com\agropulse\pattern\structural\bridge\WiFiProtocol.java

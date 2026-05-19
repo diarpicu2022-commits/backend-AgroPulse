@@ -3,6 +3,7 @@ package com.agropulse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * ╔══════════════════════════════════════════════════════════════════════╗
@@ -28,6 +29,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
  * ╚══════════════════════════════════════════════════════════════════════╝
  */
 @SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
+@EnableScheduling
 public class AgroPulseApplication {
 
     public static void main(String[] args) {
