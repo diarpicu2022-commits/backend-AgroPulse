@@ -5,6 +5,7 @@ import com.agropulse.model.User;
 import com.agropulse.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,9 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     // ── GET /users ───────────────────────────────────────────────────────
     @GetMapping
@@ -88,6 +92,8 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable int id) {
         if (!userRepository.existsById(id)) return ResponseEntity.notFound().build();
+        // Remove junction-table rows so the greenhouse user list stays clean
+        try { jdbcTemplate.update("DELETE FROM user_greenhouse WHERE user_id = ?", id); } catch (Exception ignored) {}
         userRepository.deleteById(id);
         return ResponseEntity.ok(Map.of("deleted", true));
     }
