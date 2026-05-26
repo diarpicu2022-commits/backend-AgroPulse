@@ -4,7 +4,7 @@ import com.agropulse.api.dto.RegisterDto;
 import com.agropulse.dao.UserRepository;
 import com.agropulse.model.User;
 import com.agropulse.model.enums.UserRole;
-import jakarta.servlet.http.HttpServletRequest;
+import com.agropulse.security.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +28,9 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     // ── POST /auth/login ─────────────────────────────────────────────────
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, Object> body) {
@@ -40,7 +43,7 @@ public class AuthController {
         if (googleId != null || (email != null && password == null && username == null)) {
             Optional<User> found = userRepository.findByEmail(email);
             if (found.isPresent()) {
-                return ResponseEntity.ok(sanitize(found.get()));
+                return ResponseEntity.ok(sanitizeWithToken(found.get()));
             }
             // Auto-create Google user
             User newUser = new User();
@@ -52,7 +55,7 @@ public class AuthController {
             String avatar = (String) body.get("avatar");
             if (avatar != null) newUser.setAvatar(avatar);
             userRepository.save(newUser);
-            return ResponseEntity.ok(sanitize(newUser));
+            return ResponseEntity.ok(sanitizeWithToken(newUser));
         }
 
         // Standard login by username or email
@@ -64,8 +67,9 @@ public class AuthController {
             userOpt = userRepository.findByEmail(email);
         }
 
+        // Single generic message for both cases — prevents user enumeration
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Usuario no encontrado"));
+            return ResponseEntity.status(401).body(Map.of("error", "Credenciales incorrectas"));
         }
 
         User user = userOpt.get();
@@ -77,12 +81,12 @@ public class AuthController {
                     user.setPassword(passwordEncoder.encode(password));
                     userRepository.save(user);
                 } else {
-                    return ResponseEntity.status(401).body(Map.of("error", "Contraseña incorrecta"));
+                    return ResponseEntity.status(401).body(Map.of("error", "Credenciales incorrectas"));
                 }
             }
         }
 
-        return ResponseEntity.ok(sanitize(user));
+        return ResponseEntity.ok(sanitizeWithToken(user));
     }
 
     // ── POST /auth/register ──────────────────────────────────────────────
@@ -98,7 +102,7 @@ public class AuthController {
         user.setEmail(body.getEmail());
         user.setRole(UserRole.OPERATOR);
         userRepository.save(user);
-        return ResponseEntity.ok(sanitize(user));
+        return ResponseEntity.ok(sanitizeWithToken(user));
     }
 
     // ── GET /auth/me ─────────────────────────────────────────────────────
@@ -107,25 +111,18 @@ public class AuthController {
         return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
     }
 
-    // ── GET /auth/users ──────────────────────────────────────────────────
+    // ── GET /auth/users ── protected by SecurityConfig (ROLE_ADMIN) ─────
     @GetMapping("/users")
-    public ResponseEntity<?> getAllUsers(HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
-        }
+    public ResponseEntity<?> getAllUsers() {
         List<Map<String, Object>> users = userRepository.findAll()
                 .stream().map(this::sanitize).collect(Collectors.toList());
         return ResponseEntity.ok(Map.of("users", users));
     }
 
-    // ── PUT /auth/users/{id}/role ────────────────────────────────────────
+    // ── PUT /auth/users/{id}/role ── protected by SecurityConfig ────────
     @PutMapping("/users/{id}/role")
     public ResponseEntity<?> changeRole(@PathVariable int id,
-                                        @RequestBody Map<String, Object> body,
-                                        HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
-        }
+                                        @RequestBody Map<String, Object> body) {
         Optional<User> userOpt = userRepository.findById(id);
         if (userOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -177,14 +174,10 @@ public class AuthController {
         return ResponseEntity.ok(sanitize(user));
     }
 
-    // ── PUT /auth/users/{id}/greenhouses ─────────────────────────────────
+    // ── PUT /auth/users/{id}/greenhouses ── protected by SecurityConfig ──
     @PutMapping("/users/{id}/greenhouses")
     public ResponseEntity<?> setGreenhouses(@PathVariable int id,
-                                            @RequestBody Map<String, Object> body,
-                                            HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
-        }
+                                            @RequestBody Map<String, Object> body) {
         Optional<User> opt = userRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         User user = opt.get();
@@ -204,10 +197,12 @@ public class AuthController {
 
     // ── Helpers ──────────────────────────────────────────────────────────
 
-    private boolean isAdmin(HttpServletRequest request) {
-        String envAdmin    = System.getenv("AGROPULSE_ADMIN_EMAIL");
-        String headerAdmin = request.getHeader("X-Admin-Email");
-        return envAdmin != null && envAdmin.equals(headerAdmin);
+    private Map<String, Object> sanitizeWithToken(User user) {
+        Map<String, Object> map = sanitize(user);
+        String role = user.getRole() != null ? user.getRole().name() : "OPERATOR";
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getEmail(), role);
+        map.put("token", token);
+        return map;
     }
 
     private Map<String, Object> sanitize(User user) {

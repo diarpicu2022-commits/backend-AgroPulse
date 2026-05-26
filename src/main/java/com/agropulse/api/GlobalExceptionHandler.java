@@ -32,6 +32,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleAll(Exception e) {
+        // Build full cause chain for internal logging only — never expose to client
         StringBuilder chain = new StringBuilder();
         Throwable cause = e;
         int depth = 0;
@@ -44,12 +45,11 @@ public class GlobalExceptionHandler {
             cause = cause.getCause();
             depth++;
         }
-
         log.error("[500] {}", chain);
 
+        // Return only a generic message — never expose class names, DB schema, or stack info
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-        body.put("detail", chain.toString());
+        body.put("error", "Error interno del servidor. Intenta de nuevo.");
         return ResponseEntity.status(500).body(body);
     }
 }
