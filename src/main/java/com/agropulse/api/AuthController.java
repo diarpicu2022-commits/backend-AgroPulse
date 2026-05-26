@@ -45,13 +45,13 @@ public class AuthController {
             if (found.isPresent()) {
                 return ResponseEntity.ok(sanitizeWithToken(found.get()));
             }
-            // Auto-create Google user
+            // Auto-create Google user; first user ever becomes ADMIN
             User newUser = new User();
             newUser.setEmail(email);
             String name = (String) body.get("name");
             newUser.setFullName(name != null ? name : email);
             newUser.setUsername(email);
-            newUser.setRole(UserRole.OPERATOR);
+            newUser.setRole(userRepository.existsByRole(UserRole.ADMIN) ? UserRole.OPERATOR : UserRole.ADMIN);
             String avatar = (String) body.get("avatar");
             if (avatar != null) newUser.setAvatar(avatar);
             userRepository.save(newUser);
@@ -100,7 +100,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(body.getPassword()));
         user.setFullName(body.getFullName() != null ? body.getFullName() : body.getUsername());
         user.setEmail(body.getEmail());
-        user.setRole(UserRole.OPERATOR);
+        user.setRole(userRepository.existsByRole(UserRole.ADMIN) ? UserRole.OPERATOR : UserRole.ADMIN);
         userRepository.save(user);
         return ResponseEntity.ok(sanitizeWithToken(user));
     }
@@ -109,6 +109,27 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> me() {
         return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+    }
+
+    // ── POST /auth/bootstrap-admin ── promotes caller to ADMIN only when no admin exists
+    // Safe to leave public: only fires once; afterwards it always returns 409.
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<?> bootstrapAdmin(@RequestBody Map<String, Object> body) {
+        if (userRepository.existsByRole(UserRole.ADMIN)) {
+            return ResponseEntity.status(409).body(Map.of("error", "Ya existe un administrador"));
+        }
+        String email = (String) body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "email requerido"));
+        }
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+        }
+        User user = opt.get();
+        user.setRole(UserRole.ADMIN);
+        userRepository.save(user);
+        return ResponseEntity.ok(sanitizeWithToken(user));
     }
 
     // ── GET /auth/users ── protected by SecurityConfig (ROLE_ADMIN) ─────

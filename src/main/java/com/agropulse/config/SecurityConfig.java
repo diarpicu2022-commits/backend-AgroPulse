@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/sync-google-user").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/bootstrap-admin").permitAll()
                 // Admin user management — requires ADMIN role from JWT
                 .requestMatchers(HttpMethod.GET,  "/auth/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,  "/auth/users/*/role").hasRole("ADMIN")
@@ -51,8 +52,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/firmware/download").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/firmware/signature").permitAll()
                 // System settings — admin only
-                .requestMatchers(HttpMethod.GET, "/api/system-settings").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/system-settings/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/system-settings").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/system-settings/*").hasRole("ADMIN")
                 // Everything else (device endpoints, readings, etc.) — open
                 .anyRequest().permitAll()
             )
