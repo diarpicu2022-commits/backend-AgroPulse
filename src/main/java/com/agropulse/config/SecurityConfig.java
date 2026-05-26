@@ -45,6 +45,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,  "/users/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/users/*").hasRole("ADMIN")
+                // Firmware OTA — upload restringido a ADMIN; download/version via device-code en controller
+                .requestMatchers(HttpMethod.POST, "/firmware/upload").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET,  "/firmware/version").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/firmware/download").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/firmware/signature").permitAll()
                 // Everything else (device endpoints, readings, etc.) — open
                 .anyRequest().permitAll()
             )
