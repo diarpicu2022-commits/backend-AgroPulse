@@ -1,0 +1,18 @@
+# Maven build output
+target/
+
+# Compiled class files
+*.class
+
+# Database files (local dev only)
+*.db
+*.sqlite
+
+# Log files
+*.log
+
+# OS / IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/
