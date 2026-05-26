@@ -68,7 +68,8 @@ public class Sensor {
         return switch (type) {
             case TEMPERATURE, TEMPERATURE_INTERNAL, TEMPERATURE_EXTERNAL
                                -> String.format("%.1f °C", lastValue);
-            case HUMIDITY      -> String.format("%.1f %%", lastValue);
+            case HUMIDITY, HUMIDITY_INTERNAL, HUMIDITY_EXTERNAL
+                               -> String.format("%.1f %%", lastValue);
             case SOIL_MOISTURE -> String.format("%.1f %%", lastValue);
             case LIGHT         -> String.format("%.0f lux", lastValue);
             case CO2           -> String.format("%.0f ppm", lastValue);
