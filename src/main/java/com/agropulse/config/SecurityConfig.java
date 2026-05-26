@@ -40,6 +40,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/auth/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,  "/auth/users/*/role").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,  "/auth/users/*/greenhouses").hasRole("ADMIN")
+                // User CRUD — admin only (greenhouse lookup stays open for auth flow)
+                .requestMatchers(HttpMethod.GET,  "/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT,  "/users/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/users/*").hasRole("ADMIN")
                 // Everything else (device endpoints, readings, etc.) — open
                 .anyRequest().permitAll()
             )
