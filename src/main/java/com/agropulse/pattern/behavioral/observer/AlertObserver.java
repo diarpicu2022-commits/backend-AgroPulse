@@ -71,7 +71,7 @@ public class AlertObserver implements IGreenhouseObserver {
         if (type == null) return "Sensor";
         return switch (type) {
             case TEMPERATURE, TEMPERATURE_INTERNAL, TEMPERATURE_EXTERNAL -> "Temperatura";
-            case HUMIDITY         -> "Humedad";
+            case HUMIDITY, HUMIDITY_INTERNAL, HUMIDITY_EXTERNAL -> "Humedad";
             case SOIL_MOISTURE    -> "Humedad del suelo";
             case CO2              -> "CO₂";
             case LIGHT            -> "Luminosidad";
