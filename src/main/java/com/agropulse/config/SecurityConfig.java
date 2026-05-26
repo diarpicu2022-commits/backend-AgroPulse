@@ -51,8 +51,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,  "/firmware/version").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/firmware/download").permitAll()
                 .requestMatchers(HttpMethod.GET,  "/firmware/signature").permitAll()
-                // System settings — admin only
-                .requestMatchers(HttpMethod.GET, "/system-settings").hasRole("ADMIN")
+                // System settings — anyone can read; only admin can write
+                .requestMatchers(HttpMethod.GET, "/system-settings").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/system-settings/*").hasRole("ADMIN")
                 // Everything else (device endpoints, readings, etc.) — open
                 .anyRequest().permitAll()
