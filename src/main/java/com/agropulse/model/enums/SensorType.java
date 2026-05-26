@@ -13,5 +13,7 @@ public enum SensorType {
     PH,                   // pH del suelo
     WIND_SPEED,           // Velocidad del viento (sensores exteriores)
     TEMPERATURE_INTERNAL, // Temperatura interior del invernadero
-    TEMPERATURE_EXTERNAL  // Temperatura exterior del invernadero
+    TEMPERATURE_EXTERNAL, // Temperatura exterior del invernadero
+    HUMIDITY_INTERNAL,    // Humedad relativa interior del invernadero
+    HUMIDITY_EXTERNAL     // Humedad relativa exterior del invernadero
 }
