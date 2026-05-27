@@ -54,7 +54,12 @@ public class SecurityConfig {
                 // System settings — anyone can read; only admin can write
                 .requestMatchers(HttpMethod.GET, "/system-settings").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/system-settings/*").hasRole("ADMIN")
-                // Everything else (device endpoints, readings, etc.) — open
+                // Readings — ESP32 posts without JWT; must be explicit before anyRequest
+                .requestMatchers(HttpMethod.POST, "/readings").permitAll()
+                .requestMatchers(HttpMethod.GET,  "/readings").permitAll()
+                // Device endpoints — public (ESP32 calls these without auth)
+                .requestMatchers("/device/**").permitAll()
+                // Everything else — open
                 .anyRequest().permitAll()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
