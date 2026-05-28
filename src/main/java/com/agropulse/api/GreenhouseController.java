@@ -92,6 +92,21 @@ public class GreenhouseController {
         return ResponseEntity.ok(g);
     }
 
+    // ── PATCH /greenhouses/{id}/location ────────────────────────────────
+    // Endpoint sin autenticación de usuario: usado exclusivamente por dispositivos IoT
+    // que no tienen JWT pero sí conocen el greenhouseId con el que se vincularon.
+    @PatchMapping("/{id}/location")
+    public ResponseEntity<?> updateLocation(@PathVariable int id,
+                                            @RequestBody Map<String, Object> body) {
+        Optional<Greenhouse> opt = greenhouseRepository.findById(id);
+        if (opt.isEmpty()) return ResponseEntity.notFound().build();
+        Greenhouse g = opt.get();
+        if (body.containsKey("latitude"))  g.setLatitude(toDouble(body.get("latitude")));
+        if (body.containsKey("longitude")) g.setLongitude(toDouble(body.get("longitude")));
+        greenhouseRepository.save(g);
+        return ResponseEntity.ok(Map.of("updated", true, "latitude", g.getLatitude(), "longitude", g.getLongitude()));
+    }
+
     // ── DELETE /greenhouses/{id} ─────────────────────────────────────────
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable int id, HttpServletRequest request) {
