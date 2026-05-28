@@ -4,6 +4,8 @@ import com.agropulse.api.dto.GreenhouseCreateDto;
 import com.agropulse.dao.GreenhouseRepository;
 import com.agropulse.dao.UserRepository;
 import com.agropulse.model.Greenhouse;
+import com.agropulse.pattern.structural.facade.IGreenhouseFacade;
+import com.agropulse.service.IrrigationService;
 import com.agropulse.service.OwnershipService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -13,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,17 +31,14 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class GreenhouseController {
 
-    @Autowired
-    private GreenhouseRepository greenhouseRepository;
+    @Autowired private GreenhouseRepository greenhouseRepository;
+    @Autowired private JdbcTemplate         jdbcTemplate;
+    @Autowired private UserRepository       userRepository;
+    @Autowired private OwnershipService     ownershipService;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private OwnershipService ownershipService;
+    // ── Patrón FACADE + COLA FIFO ─────────────────────────────────────
+    @Autowired private IGreenhouseFacade  greenhouseFacade;   // FACADE
+    @Autowired private IrrigationService  irrigationService;  // QUEUE FIFO
 
     // ── GET /greenhouses ─────────────────────────────────────────────────
     @GetMapping
@@ -192,8 +192,111 @@ public class GreenhouseController {
         if (value == null) return null;
         if (value instanceof Double) return (Double) value;
         if (value instanceof Float) return ((Float) value).doubleValue();
-        if (value instanceof Integer) return ((Integer) value).doubleValue();
-        if (value instanceof Long) return ((Long) value).doubleValue();
+        if (value instanceof Integer i) return i.doubleValue();
+        if (value instanceof Long l)    return l.doubleValue();
         try { return Double.parseDouble(value.toString()); } catch (NumberFormatException e) { return null; }
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    //  PATRÓN FACADE — GET /greenhouses/{id}/report
+    // ══════════════════════════════════════════════════════════════════
+    /**
+     * Retorna el reporte completo del invernadero mediante la FACADE.
+     * Una sola llamada al cliente obtiene: sensores, alertas, cultivo y riego.
+     *
+     * FACADE: el cliente no accede a ReadingRepository, AlertRepository ni
+     * CropDao directamente — la Facade los orquesta de forma transparente.
+     */
+    @GetMapping("/{id}/report")
+    public ResponseEntity<?> getFullReport(@PathVariable int id) {
+        return ResponseEntity.ok(greenhouseFacade.getGreenhouseFullReport(id));
+    }
+
+    /**
+     * Verifica humedad real y activa riego si está por debajo del umbral.
+     * FACADE: una llamada dispara lectura de sensor + actuación + log.
+     */
+    @PostMapping("/{id}/irrigation/trigger")
+    public ResponseEntity<?> triggerIrrigation(@PathVariable int id,
+                                                @RequestBody Map<String, Object> body) {
+        double threshold = body.containsKey("threshold")
+                ? toDouble2(body.get("threshold"))
+                : 40.0;
+        boolean triggered = greenhouseFacade.triggerIrrigationIfNeeded(id, threshold);
+        return ResponseEntity.ok(Map.of(
+            "patron",     "FACADE — orquesta sensores + actuadores + log",
+            "riegoActivo", triggered,
+            "umbral",      threshold
+        ));
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    //  COLA FIFO — /greenhouses/{id}/irrigation/queue
+    // ══════════════════════════════════════════════════════════════════
+
+    /**
+     * Encola un nuevo horario de riego (FIFO + Builder).
+     * ESTRUCTURA: enqueue() — el horario se agrega al final de la cola.
+     * PATRÓN: IrrigationService usa internamente Builder + IrrigationQueue.
+     */
+    @PostMapping("/{id}/irrigation/enqueue")
+    public ResponseEntity<?> enqueueIrrigation(@PathVariable int id,
+                                                @RequestBody Map<String, Object> body) {
+        String zone     = body.getOrDefault("zone",     "ZONE_A").toString();
+        int    hour     = toInt2(body.getOrDefault("startHour",   6));
+        int    minute   = toInt2(body.getOrDefault("startMinute", 0));
+        int    duration = toInt2(body.getOrDefault("durationMinutes", 30));
+        double moisture = body.containsKey("targetMoisture")
+                          ? toDouble2(body.get("targetMoisture"))
+                          : 60.0;
+
+        var schedule = irrigationService.enqueueSchedule(id, zone, hour, minute, duration, moisture);
+        return ResponseEntity.ok(Map.of(
+            "estructura", "COLA FIFO — enqueue() al final de la cola",
+            "patron",     "BUILDER — IrrigationSchedule.Builder construye el horario",
+            "encolado",   schedule.getScheduleName(),
+            "zona",       schedule.getIrrigationZone(),
+            "inicio",     schedule.getStartTime().toString(),
+            "duración",   schedule.getDurationMinutes() + " min"
+        ));
+    }
+
+    /**
+     * Estado de la cola FIFO (front + rear) sin extraer elementos.
+     * ESTRUCTURA: front() + rear() — consultas no destructivas.
+     */
+    @GetMapping("/{id}/irrigation/queue")
+    public ResponseEntity<?> getQueueStatus(@PathVariable int id) {
+        return ResponseEntity.ok(irrigationService.getQueueStatus());
+    }
+
+    /**
+     * Procesa el próximo horario en la cola (dequeue FIFO).
+     * ESTRUCTURA: dequeue() — extrae el primero en entrar.
+     */
+    @PostMapping("/{id}/irrigation/process-next")
+    public ResponseEntity<?> processNextIrrigation(@PathVariable int id) {
+        return ResponseEntity.ok(irrigationService.processNext());
+    }
+
+    /**
+     * Procesa y vacía toda la cola en orden FIFO.
+     */
+    @PostMapping("/{id}/irrigation/process-all")
+    public ResponseEntity<?> processAllIrrigation(@PathVariable int id) {
+        return ResponseEntity.ok(irrigationService.processAll());
+    }
+
+    // ── Helpers adicionales ───────────────────────────────────────────
+    private double toDouble2(Object v) {
+        if (v == null)              return 0.0;
+        if (v instanceof Number n)  return n.doubleValue();
+        try { return Double.parseDouble(v.toString()); } catch (Exception e) { return 0.0; }
+    }
+
+    private int toInt2(Object v) {
+        if (v == null)              return 0;
+        if (v instanceof Number n)  return n.intValue();
+        try { return Integer.parseInt(v.toString()); } catch (Exception e) { return 0; }
     }
 }
